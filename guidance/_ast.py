@@ -816,6 +816,11 @@ class LarkSerializer:
         new_name = name.replace("-", "_")
         # convert fooBar_Baz to foo_Bar_Baz
         new_name = re.sub(r"([a-z])([A-Z])", r"\1_\2", new_name)
+        # rule names can only contain letters, digits, and underscores, and have to start
+        # with a letter (optionally preceded by a single underscore)
+        new_name = re.sub(r"[^A-Za-z0-9_]", "_", new_name)
+        if not re.match(r"_?[A-Za-z]", new_name):
+            new_name = "n_" + new_name
         if terminal:
             new_name = new_name.upper()
         else:

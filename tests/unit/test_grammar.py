@@ -18,6 +18,13 @@ def test_select_longer():
     assert lm["text"] == "nice man."
 
 
+def test_select_non_identifier_name():
+    """This tests to ensure that capture names that are not valid rule names still work."""
+    lm = models.Mock(b"<s>the number is two")
+    lm += "the number is " + select(name="the number", options=["one", "two"])
+    assert lm["the number"] == "two"
+
+
 @pytest.mark.xfail(
     reason="Lexer sees 'a' then 'b' and here decides to continue matching abq; see https://github.com/guidance-ai/llguidance/issues/2"
 )
@@ -144,3 +151,20 @@ class TestMatch:
         # Shold raise since we don't allow partial
         with pytest.raises(ByteParserException):
             g.match(b"123", raise_exceptions=True)
+
+    @pytest.mark.parametrize(
+        "name",
+        ["first name", "first.name", "1st name", "numéro", "a|b"],
+    )
+    def test_non_identifier_name(self, name):
+        g = "123" + gen(regex=r"\d+x?", name=name)
+        match = g.match("123456x")
+        assert match is not None
+        assert not match.partial
+        assert match.captures[name] == "456x"
+
+    def test_non_identifier_select_name(self):
+        g = "the number is " + select(["one", "two"], name="the number")
+        match = g.match("the number is two")
+        assert match is not None
+        assert match.captures["the number"] == "two"

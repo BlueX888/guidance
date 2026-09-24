@@ -112,6 +112,25 @@ MY_RULE: /.*/
         is_err, _ = LLMatcher.validate_grammar_with_warnings(grm)
         assert not is_err
 
+    def test_capture_rule_node_invalid_name(self):
+        target = LarkSerializer()
+        ren = RegexNode(".*")
+        rule_node = RuleNode("first name", value=ren, capture="first name")
+
+        result = target.serialize(rule_node)
+        print(result)
+
+        expected = """%llguidance {}
+
+start: first_name
+first_name[capture="first name"]: FIRST_NAME
+FIRST_NAME: /.*/
+"""
+        assert result == expected
+        grm = LLMatcher.grammar_from_lark(result)
+        is_err, _ = LLMatcher.validate_grammar_with_warnings(grm)
+        assert not is_err
+
     def test_temperature_rule_node(self):
         target = LarkSerializer()
         ren = RegexNode(".*")
